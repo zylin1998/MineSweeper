@@ -37,7 +37,8 @@ namespace Loyufei
     {
         public FlexibleRepositoryBase() : base()
         {
-
+            _Limited     = false;
+            _MaxCapacity = 0;
         }
 
         public FlexibleRepositoryBase(int capacity) : this(capacity, true,  capacity)
@@ -69,12 +70,15 @@ namespace Loyufei
         {
             var limit  = _MaxCapacity - Capacity;
             var count  = Limited ? Mathf.Clamp(amount, 0, limit) : amount;
-            var expand = new TReposit[count]
-                .Select(reposit => Activator.CreateInstance<TReposit>());
+            
+            for(var i = 0; i < count; i++) 
+            {
+                var expand = Activator.CreateInstance<TReposit>();
 
-            _Reposits.AddRange(expand);
+                _Reposits.Add(expand);
 
-            return _Reposits.GetRange(count, count).OfType<IReposit<TData>>();
+                yield return expand;
+            }
         }
 
         public void Release(int index) 
