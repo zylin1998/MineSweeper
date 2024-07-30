@@ -1,11 +1,10 @@
-﻿using Loyufei;
-using Loyufei.DomainEvents;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Schema;
+using System.Collections;
+using System.Collections.Generic;
+using Zenject;
+using Loyufei;
+using Loyufei.DomainEvents;
 
 namespace MineSweeper
 {
@@ -18,14 +17,23 @@ namespace MineSweeper
 
         public MineSweeperModel Model { get; }
 
+        [Inject]
+        public DataUpdater Updater { get; }
+
         private UpdateGridView _Update   = new();
         private GameOver       _GameOver = new();
+
+        protected override void RegisterEvents()
+        {
+            Register<GameStart>(Start);
+            Register<Detected>(Detected);
+        }
 
         public void Start(GameStart start) 
         {
             Model.Start(start.Size, start.MineCount);
 
-            SettleEvents(_Update);
+            SettleEvents(new LayoutGridView());
         }
 
         public void Detected(Detected detected) 
@@ -56,6 +64,11 @@ namespace MineSweeper
         }
 
         public IOffset2DInt Offset { get; }
+    }
+
+    public class LayoutGridView : DomainEventBase 
+    {
+        
     }
 
     public class UpdateGridView : DomainEventBase 

@@ -19,7 +19,12 @@ namespace MineSweeper
 
         private List<Info>    Offsets { get; } = new();
         
-        public IOffset2DInt[] MineIds { get; private set; }
+        public IOffset2DInt[] AllMine { get; private set; }
+        
+        public IOffset2DInt Size      { get; set; }
+        public int          MineCount { get; set; }
+
+        #region Detect
 
         public bool IsDetected(IOffset2DInt offset) 
         {
@@ -43,9 +48,11 @@ namespace MineSweeper
             Offsets.Clear();
         }
 
+        #endregion
+
         public void SetMines(IEnumerable<IOffset2DInt> mines) 
         {
-            MineIds = mines.ToArray();
+            AllMine = mines.ToArray();
         }
     }
 }

@@ -22,6 +22,9 @@ namespace MineSweeper
         {
             Grid.Reset(size);
 
+            Query.Size      = size;
+            Query.MineCount = count;
+
             Query.SetMines(Grid.BuryMine(count));
         }
 

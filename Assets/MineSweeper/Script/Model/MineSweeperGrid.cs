@@ -30,7 +30,7 @@ namespace MineSweeper
 
         public bool IsClamp(IOffset2DInt offset) 
         {
-            return offset.X.IsClamp(0, Size.X) && offset.Y.IsClamp(0, Size.Y);
+            return offset.X.IsClamp(0, Size.X - 1) && offset.Y.IsClamp(0, Size.Y - 1);
         }
 
         public int Detected(IOffset2DInt offset)
