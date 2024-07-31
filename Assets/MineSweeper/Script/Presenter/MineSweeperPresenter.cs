@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using Zenject;
 using Loyufei;
 using Loyufei.DomainEvents;
 
@@ -16,9 +15,6 @@ namespace MineSweeper
         }
 
         public MineSweeperModel Model { get; }
-
-        [Inject]
-        public DataUpdater Updater { get; }
 
         private UpdateGridView _Update   = new();
         private GameOver       _GameOver = new();

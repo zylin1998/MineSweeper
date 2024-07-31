@@ -5,7 +5,6 @@ using Zenject;
 using Loyufei;
 using Loyufei.DomainEvents;
 using Loyufei.ViewManagement;
-using UnityEngine;
 
 namespace MineSweeper
 {
@@ -33,6 +32,18 @@ namespace MineSweeper
         
         public Dictionary<int, ToggleListener> ToggleListeners { get; private set; }
 
+        #region Override
+
+        protected override void RegisterEvents()
+        {
+            Register<LayoutGridView>(Layout);
+            Register<UpdateGridView>(UpdateGrid);
+            Register<GameOver>(GameOver);
+            Register<UnPause>(UnPause);
+        }
+
+        #endregion
+
         private void Init()
         {
             var listeners = View.ToArray();
@@ -40,14 +51,14 @@ namespace MineSweeper
             listeners
                 .OfType<ButtonListener>()
                 .FirstOrDefault()
-                .AddListener((id) => { Pause(); });
+                .AddListener((id) => Pause());
 
             ToggleListeners = listeners
                 .OfType<ToggleListener>()
                 .ToDictionary(k => k.Id);
 
-            ToggleListeners[0].AddListener((id) => ToggleEvent(ToggleListeners[0]));
-            ToggleListeners[1].AddListener((id) => ToggleEvent(ToggleListeners[1]));
+            ToggleListeners[0].AddListener((id) => ToggleEvent(0));
+            ToggleListeners[1].AddListener((id) => ToggleEvent(1));
 
             Timer.Elapsed += () =>
             {
@@ -57,31 +68,13 @@ namespace MineSweeper
             };
         }
 
-        #region Override
-
-        protected override void RegisterEvents()
-        {
-            Register<LayoutGridView>(Layout);
-            Register<UpdateGridView>(UpdateGrid);
-            Register<GameOver>(GameOver);
-        }
-
-        #endregion
-
         #region ListenerEvents
 
-        private void ToggleEvent(ToggleListener toggle)
+        private void ToggleEvent(int id)
         {
-            if (!toggle.Listener.isOn) { return; }
+            if (!ToggleListeners[id].Listener.isOn) { return; }
 
-            for(var i = 0; i <= 1; i++) 
-            {
-                if (i == toggle.Id) { continue; }
-
-                ToggleListeners[i].Listener.SetIsOnWithoutNotify(false);
-            }
-
-            _DetectedType = -1 - toggle.Id;
+            _DetectedType = -1 - id;
         }
 
         private void Pause()
@@ -95,12 +88,9 @@ namespace MineSweeper
         {
             if (!_Interactable) { return; }
 
-            if (_DetectedType == -2) 
+            if (_DetectedType == -2 && View.SetFlag(listener)) 
             {
-                if (View.SetFlag(listener))
-                {
-                    Updater.Update(Declarations.MineCount, View.MineCount);
-                }
+                Updater.Update(Declarations.MineCount, View.MineCount);
             }
 
             if (_DetectedType == -1 && listener.Context == -3)
@@ -130,16 +120,19 @@ namespace MineSweeper
             Updater.Update(Declarations.Timer    , _PassTime);
             Updater.Update(Declarations.MineCount, View.MineCount);
 
+            ToggleListeners[0].Listener.isOn = true;
+            
             Timer.Start();
         }
 
         public void UpdateGrid(UpdateGridView update) 
         {
-            View.ShowGround();
+            if (View.ShowGround())
+            {
+                Updater.Update(Declarations.MineCount, View.MineCount);
+            }
 
-            var fulfilled = View.CheckFulfilled();
-
-            if (fulfilled) 
+            if (View.CheckFulfilled()) 
             {
                 _Interactable = false;
 
@@ -156,6 +149,18 @@ namespace MineSweeper
             Timer.Stop();
         }
 
+        public void UnPause(UnPause unPause) 
+        {
+            if (!_Interactable) { return; }
+            
+            Timer.Start();
+        }
+
         #endregion
+    }
+
+    public class UnPause : DomainEventBase 
+    {
+
     }
 }

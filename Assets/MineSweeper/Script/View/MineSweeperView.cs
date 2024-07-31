@@ -1,11 +1,11 @@
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Zenject;
 using Loyufei;
 using Loyufei.ViewManagement;
-using UnityEngine.UI;
-using System.Linq;
 
 namespace MineSweeper
 {
@@ -28,6 +28,7 @@ namespace MineSweeper
             => Listeners.FirstOrDefault(l => l.Offset.X == offset.X && l.Offset.Y == offset.Y);
         public IEnumerable<IUpdateContext> Contexts 
             => GetComponentsInChildren<IUpdateContext>();
+        
         [Inject]
         public MineSweeperQuery Query   { get; }
         
@@ -62,7 +63,7 @@ namespace MineSweeper
 
         public void RemoveLayout() 
         {
-            for (;  Listeners.Any();) 
+            for (; Listeners.Any();) 
             {
                 MinePool.Despawn(Listeners.Pop());
             }
@@ -70,55 +71,61 @@ namespace MineSweeper
 
         public void ShowMine(bool fulfilled) 
         {
-            foreach(var offset in Query.AllMine) 
+            var context = fulfilled ? -2 : -1;
+
+            Query.AllMine.ForEach(offset =>
             {
-                this[offset]?.SetContext(fulfilled ? -2 : -1);
-            }
+                this[offset]?.SetContext(context);
+            });
         }
 
-        public void ShowGround()
+        public bool ShowGround()
         {
+            var update = false;
+
             foreach (var info in Query.GetDetected().ToArray())
             {
-                this[info.offset].SetContext(info.mineCount);
+                var listener = this[info.offset];
+
+                if (listener.Context == -2) 
+                {
+                    _FlagCount--;
+
+                    update = true;
+                }
+                
+                listener.SetContext(info.mineCount);
             }
+
+            return update;
         }
 
         public bool CheckFulfilled() 
         {
             if (Listeners.Count(l => l.Context <= -2) != Query.AllMine.Length) { return false; }
 
-            if (Query.AllMine.All(m => this[m].Context <= -2)) 
-            {
-                ShowMine(true);
+            var fulfilled = Query.AllMine.All(m => this[m].Context <= -2);
+            
+            if (fulfilled) { ShowMine(true); }
 
-                return true;
-            }
-
-            return false;
+            return fulfilled;
         }
 
         public bool SetFlag(MineListener listener) 
         {
-            if (listener.Context == -3 && _FlagCount < Query.MineCount) 
-            {
-                listener.SetContext(-2);
+            var context = listener.Context;
+            var isCover = context == -3;
+            
+            if (!context.IsClamp(-3, -2))  { return false; }
+            if (isCover && MineCount == 0) { return false; }
 
-                _FlagCount++;
-
-                return true;
-            }
-
-            if (listener.Context == -2) 
-            {
-                listener.SetContext(-3);
-
-                _FlagCount--;
-
-                return true;
-            }
-
-            return false;
+            var (nextState, delta) = isCover ? (-2, 1) : (-3, -1);
+            
+            listener.SetContext(nextState);
+            
+            _FlagCount += delta;
+            
+            return true;
         }
     }
 }

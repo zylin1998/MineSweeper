@@ -54,6 +54,8 @@ namespace MineSweeper
 
         public override void AddListener(Action<object> callBack)
         {
+            Listener.onClick.RemoveAllListeners();
+
             Listener.onClick.AddListener(() => callBack.Invoke(Offset));
         }
 

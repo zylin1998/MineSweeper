@@ -6,7 +6,6 @@ using TMPro;
 using Loyufei;
 using Loyufei.DomainEvents;
 using Loyufei.ViewManagement;
-using Zenject;
 
 namespace MineSweeper
 {
@@ -29,9 +28,8 @@ namespace MineSweeper
 
         private int _MinMineCount = (int)(Declarations.MinSize.Pow(2) * 0.1);
         private int _MineCount    = (int)(Declarations.MinSize.Pow(2) * 0.1);
-        
-        [Inject]
-        public Timer Timer { get; }
+
+        private UnPause _UnPause = new();
 
         protected override void RegisterEvents()
         {
@@ -109,7 +107,7 @@ namespace MineSweeper
         {
             View.Close();
 
-            Timer.Start();
+            SettleEvents(_UnPause);
         }
 
         private void Open(OpenSetting open) 
