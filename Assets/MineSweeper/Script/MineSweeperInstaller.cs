@@ -18,7 +18,6 @@ namespace MineSweeper
 
             Container
                 .BindMemoryPool<MineListener, MineListener.Pool>()
-                .WithInitialSize(500)
                 .FromComponentInNewPrefab(_MineListener)
                 .AsCached();
 

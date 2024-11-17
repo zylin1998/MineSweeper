@@ -12,6 +12,13 @@ namespace MineSweeper
 {
     public class MineListener : ButtonListener
     {
+        public static Action<MineListener> _ClickEvent = (listener) => { };
+
+        private static void InvokeClick(object listener) 
+        {
+            _ClickEvent.Invoke(listener.To<MineListener>());
+        }
+
         public class Pool : MemoryPool<IOffset2DInt, MineListener> 
         {
             public Pool() : base() 
@@ -28,7 +35,8 @@ namespace MineSweeper
                 listener.SetContext(-3);
                 
                 listener.transform.SetParent(Content);
-
+                listener.transform.localScale = Vector3.one;
+                
                 listener.gameObject.SetActive(true);
             }
 
@@ -52,11 +60,14 @@ namespace MineSweeper
 
         public int Context { get; set; }
 
+        private void Awake()
+        {
+            AddListener(InvokeClick);
+        }
+
         public override void AddListener(Action<object> callBack)
         {
-            Listener.onClick.RemoveAllListeners();
-
-            Listener.onClick.AddListener(() => callBack.Invoke(Offset));
+            Listener.onClick.AddListener(() => callBack.Invoke(this));
         }
 
         public void SetContext(int context) 

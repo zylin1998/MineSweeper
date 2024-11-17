@@ -66,6 +66,8 @@ namespace MineSweeper
 
                 Updater.Update(Declarations.Timer, _PassTime);
             };
+
+            MineListener._ClickEvent = (listener) => { Detected(listener); };
         }
 
         #region ListenerEvents
@@ -106,13 +108,7 @@ namespace MineSweeper
         public void Layout(LayoutGridView layout) 
         {
             View.RemoveLayout();
-
-            var listeners = View.Layout().ToArray();
-
-            listeners.ForEach(l =>
-            {
-                l.AddListener((offset) => Detected(l));
-            });
+            View.Layout().ToArray();
 
             _Interactable = true;
             _PassTime     = 0;

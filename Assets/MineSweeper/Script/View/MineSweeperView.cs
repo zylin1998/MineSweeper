@@ -54,7 +54,7 @@ namespace MineSweeper
                 var listener = MinePool.Spawn(new Offset2DInt(x, y));
 
                 Listeners.Push(listener);
-
+                
                 yield return listener;
 
                 (x, y) = x >= size.X - 1 ? (0, ++y) : (++x, y);
